@@ -71,7 +71,7 @@ static int handleProgress(CURL *hnd, curl_off_t dlTotal, curl_off_t dlNow, curl_
 		char bar[31];
 		bar[30] = 0;
 		for(int i = 0; i < 30; i++)
-			bar[i] = (dlNow * 30 / dlTotal > i) ? '=' : ' ';
+			bar[i] = (dlNow * 30 / (dlTotal | 1) > i) ? '=' : ' ';
 		printf("[%s]\n", bar);
 	}
 
