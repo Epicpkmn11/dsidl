@@ -1,4 +1,5 @@
 # DSi Downloader
+<img src="https://img.shields.io/badge/Gitpod-ready--to--code-908a85?logo=gitpod" alt="Gitpod ready-to-code" />
 
 Simple app to download a file from a URL in a QR code on the Nintendo DSi.
 
