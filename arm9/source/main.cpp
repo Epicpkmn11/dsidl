@@ -1,7 +1,7 @@
 #include "camera.h"
 #include "download.h"
-#include "fileBrowse.h"
 #include "quirc.h"
+#include "script.h"
 #include "version.h"
 #include "wifi.h"
 
@@ -99,40 +99,27 @@ int main(int argc, char **argv) {
 			}
 			quirc_end(q);
 
-			std::string url;
+			std::string payload;
 
 			if(quirc_count(q) > 0) {
 				struct quirc_code code;
 				struct quirc_data data;
 				quirc_extract(q, 0, &code);
 				if(!quirc_decode(&code, &data)) {
-					url = (const char *)data.payload;
+					payload = (const char *)data.payload;
 				}
 			}
 
 			quirc_destroy(q);
 			free(buffer);
-			iprintf("%s!\n", url == "" ? "Not found" : "Done");
+			iprintf("%s!\n", payload == "" ? "Not found" : "Done");
 
-			if(url != "") {
-				// Trim URL to just file name
-				std::string fileName = url.substr(url.find_last_of('/') + 1);
-				fileName = fileName.substr(0, fileName.find('?'));
-				fileName = fileName.substr(0, fileName.find('#'));
+			if(payload != "") {
+				runScript(payload, verbose);
 
-				std::string path = selectFile(fileName);
-
-				if(path != "|cancel|") {
-					int ret = download(url.c_str(), path.c_str(), verbose);
-					if(ret >= 0)
-						iprintf("%s\ndownloaded successfully!\n", path.c_str());
-					else
-						iprintf("Download failed.\n");
-
-					iprintf("================================");
-					iprintf("dsidl " VER_NUMBER "\n");
-					iprintf("\nA to swap, L/R to scan QR\n");
-				}
+				iprintf("================================");
+				iprintf("dsidl " VER_NUMBER "\n");
+				iprintf("\nA to swap, L/R to scan QR\n");
 			}
 		} else if(pressed & KEY_START) {
 			// Disable camera so the light turns off
