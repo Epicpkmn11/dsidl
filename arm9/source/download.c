@@ -66,13 +66,13 @@ static size_t handleData(const char *ptr, size_t size, size_t nmemb, const void 
 }
 
 static int handleProgress(CURL *hnd, curl_off_t dlTotal, curl_off_t dlNow, curl_off_t ulTotal, curl_off_t ulNow) {
-	printf("\x1B[0;0H%lld/%lld bytes\n", dlNow, dlTotal);
+	iprintf("\x1B[4;0H%lld/%lld bytes\n", dlNow, dlTotal);
 	if(dlTotal > 0) {
 		char bar[31];
 		bar[30] = 0;
 		for(int i = 0; i < 30; i++)
 			bar[i] = (dlNow * 30 / (dlTotal | 1) > i) ? '=' : ' ';
-		printf("[%s]\n", bar);
+		iprintf("[%s]\n", bar);
 	}
 
 	return 0;
@@ -118,12 +118,14 @@ int download(const char *url, const char *path, bool verbose) {
 	}
 
 	consoleClear();
+	iprintf("%s", path);
+
 	cRes = curl_easy_perform(hnd);
 	curl_easy_cleanup(hnd);
 	hnd = NULL;
 	
 	if(cRes != CURLE_OK) {
-		printf("Error in:\ncurl\n");
+		iprintf("Error in:\ncurl\n");
 		ret = -3;
 		goto cleanup;
 	}
