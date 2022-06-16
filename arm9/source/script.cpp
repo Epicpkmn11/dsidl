@@ -91,6 +91,8 @@ void runScript(const std::string &payload, bool verbose) {
 			for(int i = 0; i < 60; i++)
 				swiWaitForVBlank();
 		}
+
+		cJSON_Delete(json);
 	} else if(payload.substr(0, 4) == "http") {
 		downloadItem(payload.c_str(), verbose);
 	} else {
