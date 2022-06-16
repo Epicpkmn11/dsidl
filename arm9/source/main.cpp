@@ -20,9 +20,9 @@ int main(int argc, char **argv) {
 	int bg0Main = bgInit(0, BgType_Text4bpp, BgSize_T_256x256, 7, 0);
 	int bg3Main = bgInit(3, BgType_Bmp16, BgSize_B16_256x256, 1, 0);
 
-	decompress(overlayTiles, bgGetGfxPtr(bg0Main), LZ77Vram);
 	dmaCopy(overlayPal, BG_PALETTE, overlayPalLen);
-	dmaCopy(overlayMap, bgGetMapPtr(bg0Main), overlayMapLen);
+	decompress(overlayTiles, bgGetGfxPtr(bg0Main), LZ77Vram);
+	decompress(overlayMap, bgGetMapPtr(bg0Main), LZ77Vram);
 	REG_BLDCNT = BLEND_SRC_BG0 | BLEND_ALPHA | BLEND_DST_BG3;
 	REG_BLDALPHA = 0x0A00;
 
