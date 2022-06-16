@@ -5,6 +5,8 @@
 #include "version.h"
 #include "wifi.h"
 
+#include "overlay.h"
+
 #include <dirent.h>
 #include <fat.h>
 #include <math.h>
@@ -15,7 +17,14 @@ int main(int argc, char **argv) {
 	consoleDemoInit();
 	vramSetBankA(VRAM_A_MAIN_BG);
 	videoSetMode(MODE_5_2D);
-	int bg3Main = bgInit(3, BgType_Bmp16, BgSize_B16_256x256, 0, 0);
+	int bg0Main = bgInit(0, BgType_Text4bpp, BgSize_T_256x256, 7, 0);
+	int bg3Main = bgInit(3, BgType_Bmp16, BgSize_B16_256x256, 1, 0);
+
+	decompress(overlayTiles, bgGetGfxPtr(bg0Main), LZ77Vram);
+	dmaCopy(overlayPal, BG_PALETTE, overlayPalLen);
+	dmaCopy(overlayMap, bgGetMapPtr(bg0Main), overlayMapLen);
+	REG_BLDCNT = BLEND_SRC_BG0 | BLEND_ALPHA | BLEND_DST_BG3;
+	REG_BLDALPHA = 0x0A00;
 
 	iprintf("dsidl " VER_NUMBER "\n");
 
