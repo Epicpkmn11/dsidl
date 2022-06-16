@@ -36,11 +36,11 @@ int main(int argc, char **argv) {
 		iprintf("If this doesn't connect, ensure\nyour Wi-Fi is working in System\nSettings.\n\nIf it still doesn't work your\nrouter isn't compatible yet.\n\nHold SELECT while loading for\nverbose logging.\n\n");
 
 		wifiInit(verbose);
+		uint i = 0;
 		while(!wifiConnected()) {
 			swiWaitForVBlank();
 			const char spinner[] = "-\\|/";
-			uint i = 0;
-			iprintf("\x1B[23;31H%c", spinner[(i++ / 4) % sizeof(spinner)]);
+			iprintf("\x1B[23;31H%c", spinner[(i++ / 6) % sizeof(spinner)]);
 		}
 		consoleClear();
 	}
