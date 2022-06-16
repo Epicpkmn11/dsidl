@@ -41,6 +41,7 @@
 
 #define USER_AGENT ("dsidl-" VER_NUMBER)
 
+static size_t bufSize = 0;
 static size_t bufWritten = 0;
 static u8 *buffer = NULL;
 static FILE *out = NULL;
@@ -48,7 +49,7 @@ static FILE *out = NULL;
 static size_t handleData(const char *ptr, size_t size, size_t nmemb, const void *userData) {
 	const size_t realSize = size * nmemb;
 
-	if(bufWritten + realSize > BUF_SIZE) {
+	if(bufWritten + realSize > bufSize) {
 		if(!out)
 			return 0;
 		size_t bytes = fwrite(buffer, 1, bufWritten, out);
@@ -105,7 +106,8 @@ int download(const char *url, const char *path, bool verbose) {
 	if(verbose)
 		curl_easy_setopt(hnd, CURLOPT_DEBUGFUNCTION, handleLog);
 
-	buffer = (u8 *)malloc(BUF_SIZE);
+	bufSize = BUF_SIZE;
+	buffer = (u8 *)malloc(bufSize);
 	if(!buffer) {
 		ret = -1;
 		goto cleanup;
@@ -150,9 +152,63 @@ cleanup:
 		hnd = NULL;
 	}
 
+	bufSize = 0;
 	bufWritten = 0;
 
 	consoleClear();
 
 	return ret;
-};
+}
+
+
+int downloadBuffer(const char *url, void *retBuffer, unsigned int size, bool verbose) {
+	if(!wifiConnected() || !retBuffer)
+		return -1;
+
+	int ret = 0;
+	CURLcode cRes;
+
+	CURL *hnd = curl_easy_init();
+	curl_easy_setopt(hnd, CURLOPT_BUFFERSIZE, 102400L);
+	curl_easy_setopt(hnd, CURLOPT_URL, url);
+	curl_easy_setopt(hnd, CURLOPT_NOPROGRESS, 0L);
+	curl_easy_setopt(hnd, CURLOPT_USERAGENT, USER_AGENT);
+	curl_easy_setopt(hnd, CURLOPT_FOLLOWLOCATION, 1L);
+	curl_easy_setopt(hnd, CURLOPT_MAXREDIRS, 50L);
+	curl_easy_setopt(hnd, CURLOPT_HTTP_VERSION, (long)CURL_HTTP_VERSION_2TLS);
+	curl_easy_setopt(hnd, CURLOPT_WRITEFUNCTION, handleData);
+	curl_easy_setopt(hnd, CURLOPT_XFERINFOFUNCTION, handleProgress);
+	curl_easy_setopt(hnd, CURLOPT_SSL_VERIFYPEER, 0L);
+	curl_easy_setopt(hnd, CURLOPT_VERBOSE, (long)verbose);
+	if(verbose)
+		curl_easy_setopt(hnd, CURLOPT_DEBUGFUNCTION, handleLog);
+
+	bufSize = size;
+	buffer = retBuffer;
+
+	consoleClear();
+	iprintf("%s", url);
+
+	cRes = curl_easy_perform(hnd);
+	curl_easy_cleanup(hnd);
+	hnd = NULL;
+	
+	if(cRes != CURLE_OK) {
+		iprintf("Error in:\ncurl\n");
+		ret = -3;
+		goto cleanup;
+	}
+
+cleanup:
+	if(hnd) {
+		curl_easy_cleanup(hnd);
+		hnd = NULL;
+	}
+
+	bufSize = 0;
+	bufWritten = 0;
+
+	consoleClear();
+
+	return ret;
+}

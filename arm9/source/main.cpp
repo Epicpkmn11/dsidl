@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
 		while(!wifiConnected()) {
 			swiWaitForVBlank();
 			const char spinner[] = "-\\|/";
-			iprintf("\x1B[23;31H%c", spinner[(i++ / 6) % sizeof(spinner)]);
+			iprintf("\x1B[23;31H%c", spinner[(i++ / 6) % (sizeof(spinner) - 1)]);
 		}
 		consoleClear();
 	}
