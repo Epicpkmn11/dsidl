@@ -1,6 +1,17 @@
 name: Build
 
-on: [push, pull_request]
+on:
+  push:
+    branches: ["*"]
+    paths-ignore:
+      - README.md
+      - resources
+  pull_request:
+    branches: ["*"]
+    paths-ignore:
+      - README.md
+      - resources
+  workflow_dispatch:
 
 jobs:
   build:

@@ -1,7 +1,11 @@
 # DSi Downloader
-<img src="https://img.shields.io/badge/Gitpod-ready--to--code-908a85?logo=gitpod" alt="Gitpod ready-to-code" />
+[![Build status on GitHub Actions](https://github.com/Epicpkmn11/dsidl/actions/workflows/build.yml/badge.svg)](https://github.com/Epicpkmn11/dsidl/actions/workflows/build.yml)
+[![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-908a85?logo=gitpod)](https://www.gitpod.io)
 
-Simple app to download a file from a URL in a QR code on the Nintendo DSi.
+A simple app to download a file from a URL in a QR code on the Nintendo DSi.
+
+![Screenshot of the main menu](/resources/screenshots/main-menu.png)
+
 
 ## Usage
 1. Add a Wi-Fi network in System Settings under "Advanced Settings"
