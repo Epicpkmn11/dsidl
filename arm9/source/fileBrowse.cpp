@@ -94,13 +94,7 @@ std::string selectDir() {
 }
 
 std::string selectFile(const std::string &fileName) {
-	std::string dir = selectDir();
-	if(dir == "")
-		return dir;
-
 	std::string str = kbdGetString("Enter a file name to save as.", 255, fileName);
-	if(str == "")
-		return str;
 
 	// Ensure name is FAT safe
 	for(uint i = 0; i < str.size(); i++) {
@@ -118,5 +112,5 @@ std::string selectFile(const std::string &fileName) {
 		}
 	}
 
-	return dir + str;
+	return str;
 }

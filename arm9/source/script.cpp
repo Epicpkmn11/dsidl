@@ -9,18 +9,35 @@
 
 #define SCRIPT_VERSION 1
 
-static void downloadItem(std::string url) {
+static void downloadItem(std::string url, std::string fileName = "") {
 	Menu::print("================================");
-	u16 key = Menu::prompt(KEY_A | KEY_B, "Download file?\nSource:\n%s\n\n(<A> Yes, <B> No)\n", url.c_str());
+	u16 key = Menu::prompt(KEY_A | KEY_B, "Download %s?\nSource:\n%s\n\n(<A> Yes, <B> No)\n", fileName == "" ? "file" : fileName.c_str(), url.c_str());
 
 	if(key & KEY_A) {
-		// Trim URL to just file name
-		std::string fileName = url.substr(url.find_last_of('/') + 1);
-		fileName = fileName.substr(0, fileName.find('?'));
-		fileName = fileName.substr(0, fileName.find('#'));
+		std::string path;
+		if(fileName == "") {
+			// Trim URL to just file name
+			std::string fileName = url.substr(url.find_last_of('/') + 1);
+			fileName = fileName.substr(0, fileName.find('?'));
+			fileName = fileName.substr(0, fileName.find('#'));
 
-		// Ask user to pick output
-		std::string path = selectFile(fileName);
+			// Ask user to pick folder and ensure name is good
+			path = selectDir();
+			if(path == "")
+				return;
+			fileName = selectFile(fileName);
+			if(fileName == "")
+				return;
+			path += fileName;
+		} else if(!(fileName[0] == '/' || fileName.substr(0, 4) == "sd:/")) {
+			path = selectDir();
+			if(path == "")
+				return;
+			path += fileName;
+		} else {
+			path = fileName;
+		}
+
 		if(path != "") {
 			int ret = download(url.c_str(), path.c_str());
 			Menu::printDelay(60, "\n%s\n", ret >= 0 ? "Download successful!" : "Download failed.");
@@ -29,38 +46,31 @@ static void downloadItem(std::string url) {
 }
 
 static void runScriptInternal(const cJSON *json) {
-	if(cJSON_IsArray(json)) {
+	if(cJSON_IsArray(json) || cJSON_IsObject(json)) {
 		cJSON *item;
 		cJSON_ArrayForEach(item, json) {
 			if(cJSON_IsString(item)) {
 				if(strncmp(item->valuestring, "http", 4) == 0)
-					downloadItem(item->valuestring);
+					downloadItem(item->valuestring, item->string ? : "");
 				else
 					Menu::print("================================%s\n", item->valuestring);
+			} else if(cJSON_IsObject(item)) {
+				cJSON *msg = cJSON_GetObjectItemCaseSensitive(item, "msg");
+				if(msg && cJSON_IsString(msg))
+					Menu::print("================================%s\n", msg->valuestring);
+
+				cJSON *overwrite = cJSON_GetObjectItemCaseSensitive(item, "overwrite");
+				if(overwrite && cJSON_IsFalse(overwrite) && item->string && access(item->string, F_OK) == 0) {
+					Menu::print("================================");
+					Menu::printDelay(30, "Skipping %s,\nfile exists and set to not\noverwrite.\n", item->string);
+					continue;
+				}
+
+				cJSON *url = cJSON_GetObjectItemCaseSensitive(item, "url");
+				if(url && cJSON_IsString(url) && strncmp(url->valuestring, "http", 4) == 0)
+					downloadItem(url->valuestring, item->string ? : "");
 			} else {
 				Menu::printDelay(60, "Invalid JSON item.\n");
-			}
-		}
-	} else if(cJSON_IsObject(json)) {
-		cJSON *item;
-		cJSON_ArrayForEach(item, json) {
-			if(cJSON_IsString(item)) {
-				if(strncmp(item->valuestring, "http", 4) == 0) {
-					Menu::print("================================");
-					u16 key = Menu::prompt(KEY_A | KEY_B, "Download %s?\nSource:\n%s\n\n(<A> Yes, <B> No)\n", item->string, item->valuestring);
-
-					if(key & KEY_A) {
-						if(item->string[0] != '/' && strncmp(item->string, "sd:/", 4) != 0)
-							selectDir();
-
-						int ret = download(item->valuestring, item->string);
-						Menu::printDelay(60, "\n%s\n", ret >= 0 ? "Download successful!" : "Download failed.");
-					}
-				} else {
-					Menu::print("================================%s\n", item->valuestring);
-				}
-			} else {
-				Menu::printDelay(60, "Invalid JSON item:\n%s\n\n", item->string);
 			}
 		}
 	} else {
@@ -110,7 +120,7 @@ void runScript(const std::string &payload) {
 		runScriptInternal(json);
 		cJSON_Delete(json);
 	} else if(payload.substr(0, 4) == "http") {
-		downloadItem(payload.c_str());
+		downloadItem(payload);
 	} else {
 		Menu::print("QR content:\n%s\n", payload.c_str());
 	}
