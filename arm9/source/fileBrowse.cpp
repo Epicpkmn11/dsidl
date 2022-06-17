@@ -49,8 +49,8 @@ static void backDir(Menu &menu) {
 	} else {
 		chdir("..");
 		menu.clear();
-		menu.addItem({"<Back>", KEY_B, std::function<void(Menu &)>(backDir)});
-	menu.addItem({"<Current Directory>", KEY_START, std::function<void(Menu &)>(exitDir)});
+		menu.addItem({"<Back>                       B", KEY_B, std::function<void(Menu &)>(backDir)});
+		menu.addItem({"<Current Directory>      START", KEY_START, std::function<void(Menu &)>(exitDir)});
 		std::vector<std::string> dirContents = getDirectoryContents();
 		for(const std::string &dir : dirContents)
 			menu.addItem({dir, KEY_NONE, std::function<void(Menu &)>(enterDir)});
@@ -68,8 +68,8 @@ static void enterDir(Menu &menu) {
 	chdir(menu.current().title.c_str());
 
 	menu.clear();
-	menu.addItem({"<Back>", KEY_B, std::function<void(Menu &)>(backDir)});
-	menu.addItem({"<Current Directory>", KEY_START, std::function<void(Menu &)>(exitDir)});
+	menu.addItem({"<Back>                       B", KEY_B, std::function<void(Menu &)>(backDir)});
+	menu.addItem({"<Current Directory>      START", KEY_START, std::function<void(Menu &)>(exitDir)});
 	std::vector<std::string> dirContents = getDirectoryContents();
 	for(const std::string &dir : dirContents)
 		menu.addItem({dir, KEY_NONE, std::function<void(Menu &)>(enterDir)});
