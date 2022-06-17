@@ -32,7 +32,7 @@ static std::vector<std::string> getDirectoryContents() {
 		closedir(pdir);
 	}
 
-	// std::sort(dirContents.begin(), dirContents.end(), [](const std::string &a, const std::string &b) { return strcasecmp(a.c_str(), b.c_str()); });
+	std::sort(dirContents.begin(), dirContents.end(), [](const std::string &a, const std::string &b) { return strcasecmp(a.c_str(), b.c_str()) < 0; });
 
 	return dirContents;
 }
