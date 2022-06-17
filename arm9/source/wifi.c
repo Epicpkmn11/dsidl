@@ -3,11 +3,13 @@
 #include <dsiwifi9.h>
 #include <lwip/sockets.h>
 
+extern bool verbose;
+
 static void logPrintf(const char *str) { iprintf("\x1B[40m%s\x1B[47m", str); }
 
 static void logNull(const char *str) { (void)str; }
 
-void wifiInit(bool verbose) {
+void wifiInit() {
 	DSiWifi_SetLogHandler(verbose ? logPrintf : logNull);
 	DSiWifi_InitDefault(true);
 }

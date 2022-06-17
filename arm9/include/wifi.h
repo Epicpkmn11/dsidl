@@ -7,7 +7,7 @@ extern "C" {
 
 #include <stdbool.h>
 
-void wifiInit(bool verbose);
+void wifiInit(void);
 bool wifiConnected(void);
 
 #ifdef __cplusplus

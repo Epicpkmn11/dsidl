@@ -3,6 +3,6 @@
 
 #include <string>
 
-void runScript(const std::string &payload, bool verbose);
+void runScript(const std::string &payload);
 
 #endif // SCRIPT_H

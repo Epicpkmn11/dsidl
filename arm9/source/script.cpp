@@ -3,22 +3,17 @@
 #include "cJSON.h"
 #include "download.h"
 #include "fileBrowse.h"
+#include "menu.h"
 
 #include <nds.h>
 
 #define SCRIPT_VERSION 1
 
-static void downloadItem(std::string url, bool verbose) {
-	iprintf("================================");
-	iprintf("Download file?\nSource:\n%s\n\n(<A> Yes, <B> No)\n", url.c_str());
-	u16 down;
-	do {
-		swiWaitForVBlank();
-		scanKeys();
-		down = keysDown();
-	} while(!(down & (KEY_A | KEY_B)));
+static void downloadItem(std::string url) {
+	Menu::print("================================");
+	u16 key = Menu::prompt(KEY_A | KEY_B, "Download file?\nSource:\n%s\n\n(<A> Yes, <B> No)\n", url.c_str());
 
-	if(down & KEY_A) {
+	if(key & KEY_A) {
 		// Trim URL to just file name
 		std::string fileName = url.substr(url.find_last_of('/') + 1);
 		fileName = fileName.substr(0, fileName.find('?'));
@@ -26,31 +21,24 @@ static void downloadItem(std::string url, bool verbose) {
 
 		// Ask user to pick output
 		std::string path = selectFile(fileName);
-		if(path != "|cancel|") {
-			int ret = download(url.c_str(), path.c_str(), verbose);
-			if(ret >= 0)
-				iprintf("%s\ndownloaded successfully!\n", path.c_str());
-			else
-				iprintf("Download failed.\n");
-			for(int i = 0; i < 60; i++)
-				swiWaitForVBlank();
+		if(path != "") {
+			int ret = download(url.c_str(), path.c_str());
+			Menu::printDelay(60, "\n%s\n", ret >= 0 ? "Download successful!" : "Download failed.");
 		}
 	}
 }
 
-static void runScriptInternal(const cJSON *json, bool verbose) {
+static void runScriptInternal(const cJSON *json) {
 	if(cJSON_IsArray(json)) {
 		cJSON *item;
 		cJSON_ArrayForEach(item, json) {
 			if(cJSON_IsString(item)) {
 				if(strncmp(item->valuestring, "http", 4) == 0)
-					downloadItem(item->valuestring, verbose);
+					downloadItem(item->valuestring);
 				else
-					iprintf("================================%s\n", item->valuestring);
+					Menu::print("================================%s\n", item->valuestring);
 			} else {
-				iprintf("Invalid JSON item.\n");
-				for(int i = 0; i < 60; i++)
-					swiWaitForVBlank();
+				Menu::printDelay(60, "Invalid JSON item.\n");
 			}
 		}
 	} else if(cJSON_IsObject(json)) {
@@ -58,52 +46,37 @@ static void runScriptInternal(const cJSON *json, bool verbose) {
 		cJSON_ArrayForEach(item, json) {
 			if(cJSON_IsString(item)) {
 				if(strncmp(item->valuestring, "http", 4) == 0) {
-					iprintf("================================");
-					iprintf("Download %s?\nSource:\n%s\n\n(<A> Yes, <B> No)\n", item->string, item->valuestring);
-					u16 down;
-					do {
-						swiWaitForVBlank();
-						scanKeys();
-						down = keysDown();
-					} while(!(down & (KEY_A | KEY_B)));
+					Menu::print("================================");
+					u16 key = Menu::prompt(KEY_A | KEY_B, "Download %s?\nSource:\n%s\n\n(<A> Yes, <B> No)\n", item->string, item->valuestring);
 
-					if(down & KEY_A) {
-						int ret = download(item->valuestring, item->string, verbose);
-						if(ret >= 0)
-							iprintf("%s\ndownloaded successfully!\n", item->string);
-						else
-							iprintf("Download failed.\n");
-						for(int i = 0; i < 60; i++)
-							swiWaitForVBlank();
+					if(key & KEY_A) {
+						int ret = download(item->valuestring, item->string);
+						Menu::printDelay(60, "\n%s\n", ret >= 0 ? "Download successful!" : "Download failed.");
 					}
 				} else {
-					iprintf("================================%s\n", item->valuestring);
+					Menu::print("================================%s\n", item->valuestring);
 				}
 			} else {
-				iprintf("Invalid JSON item:\n%s\n\n", item->string);
-				for(int i = 0; i < 60; i++)
-					swiWaitForVBlank();
+				Menu::printDelay(60, "Invalid JSON item:\n%s\n\n", item->string);
 			}
 		}
 	} else {
-		iprintf("Invalid JSON.\n");
-		for(int i = 0; i < 60; i++)
-			swiWaitForVBlank();
+		Menu::printDelay(60, "Invalid JSON.\n");
 	}
 }
 
-void runScript(const std::string &payload, bool verbose) {
+void runScript(const std::string &payload) {
 	cJSON *json = cJSON_Parse(payload.c_str());
 	if(json) {
-		iprintf("Processing as JSON script...\n");
+		Menu::print("Processing as JSON script...\n");
 
 		// Check for external script reference
 		if(cJSON_IsObject(json)) {
 			cJSON *src = cJSON_GetObjectItemCaseSensitive(json, "dsidl:src");
 			if(src) {
 				if(cJSON_IsString(src) && strncmp(src->valuestring, "http", 4) == 0) {
-					char *jsonBuffer = (char *)malloc(1 << 20);
-					int ret = downloadBuffer(src->valuestring, jsonBuffer, 1 << 20, verbose);
+					char *jsonBuffer = new char[1 << 20];
+					int ret = downloadBuffer(src->valuestring, jsonBuffer, 1 << 20);
 					if(ret == 0) {
 						cJSON_Delete(json);
 						json = cJSON_Parse(jsonBuffer);
@@ -112,24 +85,18 @@ void runScript(const std::string &payload, bool verbose) {
 							if(item && cJSON_IsNumber(item) && item->valueint == SCRIPT_VERSION) {
 								item = cJSON_GetObjectItemCaseSensitive(json, "script");
 								if(item)
-									runScriptInternal(item, verbose);
+									runScriptInternal(item);
 							} else {
-								iprintf("Invalid script.\n");
-								for(int i = 0; i < 60; i++)
-									swiWaitForVBlank();
+								Menu::printDelay(60, "Invalid script.\n");
 							}
 						} else {
-							iprintf("Failed to parse JSON.\n");
-							for(int i = 0; i < 60; i++)
-								swiWaitForVBlank();
+							Menu::printDelay(60, "Failed to parse JSON.\n");
 						}
 					}
 
-					free(jsonBuffer);
+					delete[] jsonBuffer;
 				} else {
-					iprintf("Invalid script source.\n");
-					for(int i = 0; i < 60; i++)
-						swiWaitForVBlank();
+					Menu::printDelay(60, "Invalid script source.\n");
 				}
 
 				cJSON_Delete(json);
@@ -137,11 +104,11 @@ void runScript(const std::string &payload, bool verbose) {
 			}
 		}
 
-		runScriptInternal(json, verbose);
+		runScriptInternal(json);
 		cJSON_Delete(json);
 	} else if(payload.substr(0, 4) == "http") {
-		downloadItem(payload.c_str(), verbose);
+		downloadItem(payload.c_str());
 	} else {
-		iprintf("QR content:\n%s\n", payload.c_str());
+		Menu::print("QR content:\n%s\n", payload.c_str());
 	}
 }

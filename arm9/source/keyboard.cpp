@@ -2,6 +2,7 @@
 // https://github.com/DS-Homebrew/GodMode9i/blob/cce31e15f201dc6d00c3437c4dbe6b2ca2f0d527/arm9/source/keyboard.cpp
 
 #include "keyboard.h"
+#include "menu.h"
 
 #include <nds.h>
 #include <string.h>
@@ -28,10 +29,10 @@ std::string kbdGetString(std::string label, int maxSize, std::string oldStr) {
 	bool done = false;
 	while(!done) {
 		consoleClear();
-		iprintf("%s\n", label.c_str());
-		iprintf("================================");
+		Menu::print("%s\n", label.c_str());
+		Menu::print("================================");
 
-		iprintf(">%c%-29.29s%c\n", (scrollPosition > 0) ? '\x1B' : ' ', output.c_str() + scrollPosition, (scrollPosition < (int)output.size() - (SCREEN_COLS - 3)) ? '\x1A' : ' ');
+		Menu::print(">%c%-29.29s%c\n", (scrollPosition > 0) ? '\x1B' : ' ', output.c_str() + scrollPosition, (scrollPosition < (int)output.size() - (SCREEN_COLS - 3)) ? '\x1A' : ' ');
 
 		int charLen = 1;
 		while((output[stringPosition + charLen] & 0xC0) == 0x80)
@@ -41,7 +42,7 @@ std::string kbdGetString(std::string label, int maxSize, std::string oldStr) {
 			if((output[scrollPosition + i] & 0xC0) != 0x80)
 				cursorPosition++;
 		}
-		iprintf("\x1B[42m\x1B[2;%dH%s\x1B[47m\n\n", 2 + cursorPosition, stringPosition < (int)output.size() ? output.substr(stringPosition, charLen).c_str() : "_");
+		Menu::print("\x1B[42m\x1B[2;%dH%s\x1B[47m\n\n", 2 + cursorPosition, stringPosition < (int)output.size() ? output.substr(stringPosition, charLen).c_str() : "_");
 
 		do {
 			scanKeys();
@@ -68,7 +69,7 @@ std::string kbdGetString(std::string label, int maxSize, std::string oldStr) {
 				pressed |= KEY_LEFT;
 				break;
 			case DVK_FOLD: // (using as esc)
-				output = "|cancel|";
+				output = "";
 				done = true;
 				break;
 			case DVK_BACKSPACE: // Backspace
@@ -134,6 +135,5 @@ std::string kbdGetString(std::string label, int maxSize, std::string oldStr) {
 	screenSwapped ? lcdMainOnBottom() : lcdMainOnTop();
 #endif
 
-	consoleClear();
 	return output;
 }

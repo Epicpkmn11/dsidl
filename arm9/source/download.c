@@ -41,6 +41,8 @@
 
 #define USER_AGENT ("dsidl-" VER_NUMBER)
 
+extern bool verbose;
+
 static size_t bufSize = 0;
 static size_t bufWritten = 0;
 static u8 *buffer = NULL;
@@ -67,7 +69,7 @@ static size_t handleData(const char *ptr, size_t size, size_t nmemb, const void 
 }
 
 static int handleProgress(CURL *hnd, curl_off_t dlTotal, curl_off_t dlNow, curl_off_t ulTotal, curl_off_t ulNow) {
-	iprintf("\x1B[4;0H%lld/%lld bytes\n", dlNow, dlTotal);
+	iprintf("\x1B[2;0H%lld/%lld bytes\n", dlNow, dlTotal);
 	if(dlTotal > 0) {
 		char bar[31];
 		bar[30] = 0;
@@ -84,7 +86,7 @@ int handleLog(CURL *handle, curl_infotype type, char *data, size_t size, void *u
 	return 0;
 }
 
-int download(const char *url, const char *path, bool verbose) {
+int download(const char *url, const char *path) {
 	if(!wifiConnected())
 		return -1;
 
@@ -120,7 +122,7 @@ int download(const char *url, const char *path, bool verbose) {
 	}
 
 	consoleClear();
-	iprintf("%s", path);
+	iprintf("%-32.32s\n", path);
 
 	cRes = curl_easy_perform(hnd);
 	curl_easy_cleanup(hnd);
@@ -155,13 +157,11 @@ cleanup:
 	bufSize = 0;
 	bufWritten = 0;
 
-	consoleClear();
-
 	return ret;
 }
 
 
-int downloadBuffer(const char *url, void *retBuffer, unsigned int size, bool verbose) {
+int downloadBuffer(const char *url, void *retBuffer, unsigned int size) {
 	if(!wifiConnected() || !retBuffer)
 		return -1;
 
@@ -187,7 +187,7 @@ int downloadBuffer(const char *url, void *retBuffer, unsigned int size, bool ver
 	buffer = retBuffer;
 
 	consoleClear();
-	iprintf("%s", url);
+	iprintf("%-32.32s\n", url);
 
 	cRes = curl_easy_perform(hnd);
 	curl_easy_cleanup(hnd);
@@ -207,8 +207,6 @@ cleanup:
 
 	bufSize = 0;
 	bufWritten = 0;
-
-	consoleClear();
 
 	return ret;
 }
