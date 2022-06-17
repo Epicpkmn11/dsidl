@@ -3,6 +3,7 @@
 
 #include <string>
 
+std::string selectDir(void);
 std::string selectFile(const std::string &fileName);
 
 #endif // FILE_BROWSE_H

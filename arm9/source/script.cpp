@@ -50,6 +50,9 @@ static void runScriptInternal(const cJSON *json) {
 					u16 key = Menu::prompt(KEY_A | KEY_B, "Download %s?\nSource:\n%s\n\n(<A> Yes, <B> No)\n", item->string, item->valuestring);
 
 					if(key & KEY_A) {
+						if(item->string[0] != '/' && strncmp(item->string, "sd:/", 4) != 0)
+							selectDir();
+
 						int ret = download(item->valuestring, item->string);
 						Menu::printDelay(60, "\n%s\n", ret >= 0 ? "Download successful!" : "Download failed.");
 					}
