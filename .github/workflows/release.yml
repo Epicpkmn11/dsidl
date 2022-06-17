@@ -24,12 +24,12 @@ jobs:
           curl -LO https://github.com/ihaveamac/ctr_toolkit/releases/download/make_cia6.4builds/make_cia6.4builds.zip
           unzip -j make_cia6.4builds.zip linux/make_cia
           ./make_cia --srl=dsidl.dsi
-      - name: Upload GitHub release
+      - name: Upload dsidl.dsi
         uses: AButler/upload-release-assets@v2.0
         with:
           files: dsidl.dsi
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Upload GitHub release
+      - name: Upload dsild.cia
         uses: AButler/upload-release-assets@v2.0
         with:
           files: dsidl.cia

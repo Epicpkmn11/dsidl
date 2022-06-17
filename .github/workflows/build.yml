@@ -20,12 +20,12 @@ jobs:
           curl -LO https://github.com/ihaveamac/ctr_toolkit/releases/download/make_cia6.4builds/make_cia6.4builds.zip
           unzip -j make_cia6.4builds.zip linux/make_cia
           ./make_cia --srl=dsidl.dsi
-      - name: Upload Artifact
+      - name: Upload dsidl.dsi
         uses: actions/upload-artifact@v2
         with:
           name: dsidl.dsi
           path: dsidl.dsi
-      - name: Upload Artifact
+      - name: Upload dsidl.cia
         uses: actions/upload-artifact@v2
         with:
           name: dsidl.cia
