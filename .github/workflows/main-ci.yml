@@ -15,8 +15,8 @@ jobs:
       - name: Build dsidl
         run: |
           make
-      # upload build to gh-actions
-      - name: Upload Jar
+
+      - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
           name: dsidl.dsi
