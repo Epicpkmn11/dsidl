@@ -107,12 +107,21 @@ void runScript(const std::string &payload, bool verbose) {
 					if(ret == 0) {
 						cJSON_Delete(json);
 						json = cJSON_Parse(jsonBuffer);
-
-						cJSON *item = cJSON_GetObjectItemCaseSensitive(json, "dsidl");
-						if(item && cJSON_IsNumber(item) && item->valueint == SCRIPT_VERSION) {
-							item = cJSON_GetObjectItemCaseSensitive(json, "script");
-							if(item)
-								runScriptInternal(item, verbose);
+						if(json) {
+							cJSON *item = cJSON_GetObjectItemCaseSensitive(json, "dsidl");
+							if(item && cJSON_IsNumber(item) && item->valueint == SCRIPT_VERSION) {
+								item = cJSON_GetObjectItemCaseSensitive(json, "script");
+								if(item)
+									runScriptInternal(item, verbose);
+							} else {
+								iprintf("Invalid script.\n");
+								for(int i = 0; i < 60; i++)
+									swiWaitForVBlank();
+							}
+						} else {
+							iprintf("Failed to parse JSON.\n");
+							for(int i = 0; i < 60; i++)
+								swiWaitForVBlank();
 						}
 					}
 
