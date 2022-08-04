@@ -54,6 +54,13 @@ int main(int argc, char **argv) {
 		}
 	}
 
+	if(argc > 1) {
+		printf("Running scripts from argv...\n");
+		for(int i = 1; i < argc; i++) {
+			runScript(argv[i]);
+		}
+	}
+
 	consoleClear();
 	Menu::print("Starting camera...\n");
 	cameraInit();
