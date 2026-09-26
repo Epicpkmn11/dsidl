@@ -28,6 +28,12 @@ static void downloadItem(std::string url, std::string fileName = "") {
 			fileName = selectFile(fileName);
 			if(fileName == "")
 				return;
+
+			// Add a trailing slash to the directory if one doesn't already exist
+			if (path.back() != '/') {
+				path.push_back('/');
+			}
+
 			path += fileName;
 		} else if(!(fileName[0] == '/' || fileName.substr(0, 4) == "sd:/")) {
 			path = selectDir();

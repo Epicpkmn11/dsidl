@@ -7,3 +7,6 @@ arm9/include/version.h
 
 *.DS_Store
 .vscode
+
+# Clangd
+compile_commands.json
